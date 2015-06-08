@@ -2,7 +2,7 @@
 #include <time.h>
 #include "Logger.h"
 #include "..\System\SingleLock.h"
-#include "LogWCharFileWriter.h"
+#include "LogWCharFileReceiver.h"
 
 #pragma warning(disable:4996)
 
@@ -14,13 +14,13 @@ HANDLE Logger::loggerThreadHandle = NULL;
 Logger * Logger::instance () {
     if (_instance == 0) {
 		_instance = new Logger ();
-		_instance->writers.clear ();
+		_instance->receivers.clear ();
 		
-		_instance->isFreezeWriteOperations = false;
+		_instance->isFreezeLogMessageBroadcast = false;
 
-		_instance->addWriter (Logger::FILEWriter,  new LoggerSp::LogWCharFileWriter (_T("")));
-		//_instance->addWriter (Logger::MSSQLWriter, new ); // To do later
-		//_instance->addWriter (Logger::UDPWriter,   new ); // To do later
+		_instance->addReceiver (Logger::FILEWReceiver,  new LoggerSp::LogWCharFileReceiver (_T("")));
+		//_instance->addReceiver (Logger::MSSQLReceiver, new ); // To do later
+		//_instance->addReceiver (Logger::UDPReceiver,   new ); // To do later
 
 		_instance->startLoggerThreads (_instance);
     }
@@ -31,8 +31,8 @@ void Logger::remove () {
 
 	if (_instance != 0) {
 		finishLoggerThread (_instance);
-		for (std::map<WId, LoggerSp::LogAbstractWriter *>::iterator i  = _instance->writers.begin () ;
-																	i != _instance->writers.end () ; ++i) delete (i->second);
+		for (std::map<WId, LoggerSp::LogAbstractReceiver *>::iterator i  = _instance->receivers.begin () ;
+																	i != _instance->receivers.end () ; ++i) delete (i->second);
 		delete _instance;
 		_instance = 0;
 	}
@@ -124,20 +124,20 @@ DWORD __stdcall Logger::executeLoggerThread (LPVOID pParam) {
 			case 0: {
 				
 				try {
-					if (lgr->isFreezeWriteOperations) {::Sleep (10); break;}
+					if (lgr->isFreezeLogMessageBroadcast) {::Sleep (10); break;}
 					if (lgr->getMsg (msg) == false) break;
-					for (std::map<Logger::WId, LogAbstractWriter *>::const_iterator i = lgr->writers.begin () ; i != lgr->writers.end () ; ++i) {
-						LogAbstractWriter *writer = (*i).second;
+					for (std::map<Logger::WId, LogAbstractReceiver *>::const_iterator i = lgr->receivers.begin () ; i != lgr->receivers.end () ; ++i) {
+						LogAbstractReceiver *receiver = (*i).second;
 
-						if (writer->state () == LogAbstractWriter::Open) {
-							if (writer->isAcceptWrite (msg.logPriority)) {
+						if (receiver->state () == LogAbstractReceiver::Open) {
+							if (receiver->isAcceptReceive (msg.logPriority)) {
 								try {
-									if (writer->connect () == 0) { // Не самая эффективная реализация сохранения данных
-										writer->write (msg, writer->logFormat ());
+									if (receiver->connect () == 0) { // Не самая эффективная реализация сохранения данных
+										receiver->transmit (msg, receiver->logFormat ());
 									}
-									writer->disconnect ();
+									receiver->disconnect ();
 								} catch (...) { // input/output operation
-									try {writer->disconnect ();} catch (...) {}
+									try {receiver->disconnect ();} catch (...) {}
 								}
 							}
 						}

@@ -1,19 +1,19 @@
 ﻿
-#ifndef _FILE_WCHAR_WRITER_H_
-#define _FILE_WCHAR_WRITER_H_
+#ifndef _LOG_WCHAR_FILE_RECEIVER_H_
+#define _LOG_WCHAR_FILE_RECEIVER_H_
 
-#include "LogAbstractWriter.h"
+#include "LogAbstractReceiver.h"
 #include "LogMsg.h"
 #include "LogFormat.h"
 
 namespace LoggerSp {
-	class LogWCharFileWriter : public LogAbstractWriter {
+	class LogWCharFileReceiver : public LogAbstractReceiver {
 	
 		public:
-			LogWCharFileWriter (std::wstring _connectionData) : LogAbstractWriter (_connectionData) {pOFS = NULL;}
-			~LogWCharFileWriter () {}
+			LogWCharFileReceiver (std::wstring _connectionData) : LogAbstractReceiver (_connectionData) {pOFS = NULL;}
+			~LogWCharFileReceiver () {}
 
-			virtual int write (const LogMsg &msg, const LogFormat &fmt);
+			virtual int transmit (const LogMsg &msg, const LogFormat &fmt);
 			virtual int connect ();
 			virtual int disconnect ();
 
@@ -23,9 +23,9 @@ namespace LoggerSp {
 
 			std::wstring createMsg (const LogMsg &msg, const LogFormat &logFormat) const;
 
-			std::string LogWCharFileWriter::utf8_encode(const std::wstring &wstr);
+			std::string LogWCharFileReceiver::utf8_encode(const std::wstring &wstr);
 			std::ofstream *pOFS;
 	};
 }
 
-#endif // _FILE_WCHAR_WRITER_H_
+#endif // _LOG_WCHAR_FILE_RECEIVER_H_

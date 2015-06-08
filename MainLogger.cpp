@@ -7,10 +7,10 @@
 using namespace LoggerSp;
 
 void setupLogger (Logger *lgr) {
-	lgr->setWriterConnectionData (Logger::FILEWriter, _T(".\\logs\\имя_приложения.log"));
-	lgr->setPriority (Logger::FILEWriter, LogMsg::InfoPriority);
-	lgr->setFormat (Logger::FILEWriter, LogFormat::Prior | LogFormat::Time | LogFormat::FunName | LogFormat::Fname | LogFormat::RowNum);
-	lgr->setWriterState (Logger::FILEWriter, LogAbstractWriter::Open);
+	lgr->setReceiverConnectionData (Logger::FILEWReceiver, _T(".\\logs\\имя_приложения.log"));
+	lgr->setPriority (Logger::FILEWReceiver, LogMsg::InfoPriority);
+	lgr->setFormat (Logger::FILEWReceiver, LogFormat::Prior | LogFormat::Time | LogFormat::FunName | LogFormat::Fname | LogFormat::RowNum);
+	lgr->setReceiverState (Logger::FILEWReceiver, LogAbstractReceiver::Open);
 }
 
 void message1 (int a) {
@@ -37,7 +37,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	Logger *logger = Logger::instance ();
 
 	setupLogger (logger);
-	logger->unfreezeWriteOperations ();
+	logger->unfreezeLogMessageBroadcast ();
 
 	message1 (0 /* Dummy value */);
 	message2 (2 /* Dummy value */);

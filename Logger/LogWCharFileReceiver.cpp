@@ -4,11 +4,11 @@
 #include <fstream>
 #include <vector>
 #include <windows.h>
-#include "LogWCharFileWriter.h"
+#include "LogWCharFileReceiver.h"
 
 using namespace LoggerSp;
 
-int LogWCharFileWriter::connect () {
+int LogWCharFileReceiver::connect () {
 
 	if (_connectionData.empty ()) return -1;
 
@@ -27,7 +27,7 @@ int LogWCharFileWriter::connect () {
 	return 0;
 }
 
-int LogWCharFileWriter::disconnect () {
+int LogWCharFileReceiver::disconnect () {
 	if (pOFS != NULL) {
 		pOFS->close ();
 		delete pOFS;
@@ -36,14 +36,14 @@ int LogWCharFileWriter::disconnect () {
 	return 0;
 }
 
-int LogWCharFileWriter::write (const LogMsg &msg, const LogFormat &fmt) {
+int LogWCharFileReceiver::transmit (const LogMsg &msg, const LogFormat &fmt) {
 	
 	std::wstring str = createMsg (msg, fmt);
 	(*pOFS) << utf8_encode (str) << std::endl << std::flush;
 	return 0;
 }
 
-std::wstring LogWCharFileWriter::createMsg (const LogMsg &lmsg, const LogFormat &logFormat) const {
+std::wstring LogWCharFileReceiver::createMsg (const LogMsg &lmsg, const LogFormat &logFormat) const {
 	
 	std::wstringstream sstr;
 	bool isAppend = false;
@@ -86,7 +86,7 @@ std::wstring LogWCharFileWriter::createMsg (const LogMsg &lmsg, const LogFormat 
 	return sstr.str ();
 }
 
-std::wstring LogWCharFileWriter::createTimeWStr (const LogMsg &msg) const {
+std::wstring LogWCharFileReceiver::createTimeWStr (const LogMsg &msg) const {
 	wchar_t tws[26];
 
 	_wctime64_s (tws, 26, &msg.ltime);
@@ -99,12 +99,12 @@ std::wstring LogWCharFileWriter::createTimeWStr (const LogMsg &msg) const {
 	return std::wstring (tws);
 }
 
-std::wstring LogWCharFileWriter::createPriorityWStr (const LogMsg &msg) const {
+std::wstring LogWCharFileReceiver::createPriorityWStr (const LogMsg &msg) const {
 	return LogMsg::logPriorityAsStr (msg.logPriority);
 }
 
 // Convert a wide Unicode string to an UTF8 string
-std::string LogWCharFileWriter::utf8_encode(const std::wstring &wstr) {
+std::string LogWCharFileReceiver::utf8_encode(const std::wstring &wstr) {
 
 	int size_needed = WideCharToMultiByte(CP_UTF8, 0, &(wstr.c_str ()[0]), (int)wstr.size(), NULL, 0, NULL, NULL);
 	if (size_needed == 0) return "";

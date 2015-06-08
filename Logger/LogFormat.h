@@ -7,8 +7,8 @@ namespace LoggerSp {
 	class LogFormat {
 	public:
 		enum LogFmtColumns {
-			Time    = 1,  // Write receive time of message
-			Prior   = 2,  // Write Level
+			Time    = 1,  // Write fixed time of message
+			Prior   = 2,  // Write Priority Level
 			Fname   = 4,  // Filename of source code
 			FunName = 8,  // Function name
 			RowNum  = 16  // Row number

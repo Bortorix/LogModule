@@ -203,7 +203,7 @@
 			Name="Logger"
 			>
 			<File
-				RelativePath=".\Logger\LogAbstractWriter.h"
+				RelativePath=".\Logger\LogAbstractReceiver.h"
 				>
 			</File>
 			<File
@@ -227,11 +227,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Logger\LogWCharFileWriter.cpp"
+				RelativePath=".\Logger\LogWCharFileReceiver.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Logger\LogWCharFileWriter.h"
+				RelativePath=".\Logger\LogWCharFileReceiver.h"
 				>
 			</File>
 		</Filter>

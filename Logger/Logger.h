@@ -5,7 +5,7 @@
 #include <string>
 #include <map>
 #include <queue>
-#include "LogAbstractWriter.h"
+#include "LogAbstractReceiver.h"
 #include "..\System\CriticalSection.h"
 #include "..\System\Event.h"
 
@@ -17,11 +17,11 @@ namespace LoggerSp {
 	class Logger {
 		public:
 
-			/* Writer's identifiers */
+			/* Receiver's identifiers */
 			enum WId {
-				FILEWriter  = 1,
-				MSSQLWriter = 2, // В настоящий момент не реализован !!!
-				UDPWriter   = 3  // В настоящий момент не реализован !!!
+				FILEWReceiver = 1,
+				MSSQLReceiver = 2, // В настоящий момент не реализован !!!
+				UDPReceiver   = 3  // В настоящий момент не реализован !!!
 			};
 
 			static Logger *instance ();
@@ -29,61 +29,61 @@ namespace LoggerSp {
 
 			static const char * moduleName () {return "Logger";}
         
-			void freezeWriteOperations () {isFreezeWriteOperations = true;}
-			void unfreezeWriteOperations () {isFreezeWriteOperations = false;}
+			void freezeLogMessageBroadcast () {isFreezeLogMessageBroadcast = true;}
+			void unfreezeLogMessageBroadcast () {isFreezeLogMessageBroadcast = false;}
 
-			bool setWriterConnectionData (const WId &wId, const std::wstring &connectionData) {
-				std::map<WId, LogAbstractWriter *>::iterator i = writers.find (wId);
-				if (i == writers.end ()) return false; // Writer with the key wId not found
+			bool setReceiverConnectionData (const WId &wId, const std::wstring &connectionData) {
+				std::map<WId, LogAbstractReceiver *>::iterator i = receivers.find (wId);
+				if (i == receivers.end ()) return false; // Receiver with the key wId not found
 				i->second->setConnectionData (connectionData);
 				return true;
 			}
 
-			bool getWriterConnectionData (const WId &wId, std::wstring &_connectionData) {
-				std::map<WId, LogAbstractWriter *>::iterator i = writers.find (wId);
-				if (i == writers.end ()) return false; // Writer with the key wId not found
+			bool getReceiverConnectionData (const WId &wId, std::wstring &_connectionData) {
+				std::map<WId, LogAbstractReceiver *>::iterator i = receivers.find (wId);
+				if (i == receivers.end ()) return false; // Receiver with the key wId not found
 				_connectionData = i->second->connectionData ();
 				return true;
 			}
 
-			bool setWriterState (const WId &wId, const LogAbstractWriter::LogWriterState &state) {
-				std::map<WId, LogAbstractWriter *>::iterator i = writers.find (wId);
-				if (i == writers.end ()) return false; // Writer with the key wId not found
+			bool setReceiverState (const WId &wId, const LogAbstractReceiver::LogReceiverState &state) {
+				std::map<WId, LogAbstractReceiver *>::iterator i = receivers.find (wId);
+				if (i == receivers.end ()) return false; // Receiver with the key wId not found
 				i->second->setState (state);
 				return true;
 			}
 
-			bool getWriterState (const WId &wId, LogAbstractWriter::LogWriterState &state) {
-				std::map<WId, LogAbstractWriter *>::iterator i = writers.find (wId);
-				if (i == writers.end ()) return false; // Writer with the key wId not found
+			bool getReceiverState (const WId &wId, LogAbstractReceiver::LogReceiverState &state) {
+				std::map<WId, LogAbstractReceiver *>::iterator i = receivers.find (wId);
+				if (i == receivers.end ()) return false; // Receiver with the key wId not found
 				state = i->second->state ();
 				return true;
 			}
 
 			bool setPriority (const WId &wId, const LogMsg::LogPriority &priority) {
-				std::map<WId, LogAbstractWriter *>::iterator i = writers.find (wId);
-				if (i == writers.end ()) return false; // Writer with the key wId not found
+				std::map<WId, LogAbstractReceiver *>::iterator i = receivers.find (wId);
+				if (i == receivers.end ()) return false; // Receiver with the key wId not found
 				i->second->setMinPriority (priority);
 				return true;
 			}
 
 			bool getPriority (const WId &wId, LogMsg::LogPriority &priority) {
-				std::map<WId, LogAbstractWriter *>::iterator i = writers.find (wId);
-				if (i == writers.end ()) return false; // Writer with the key wId not found
+				std::map<WId, LogAbstractReceiver *>::iterator i = receivers.find (wId);
+				if (i == receivers.end ()) return false; // Receiver with the key wId not found
 				priority = i->second->minPriority ();
 				return true;
 			}
 
 			bool setFormat (const WId &wId, const LoggerSp::LogFormat &format) {
-				std::map<WId, LogAbstractWriter *>::iterator i = writers.find (wId);
-				if (i == writers.end ()) return false; // Writer with the key wId not found
+				std::map<WId, LogAbstractReceiver *>::iterator i = receivers.find (wId);
+				if (i == receivers.end ()) return false; // Receiver with the key wId not found
 				i->second->setLogFormat (format);
 				return true;
 			}
 
 			bool getPriority (const WId &wId, LoggerSp::LogFormat &format) {
-				std::map<WId, LogAbstractWriter *>::iterator i = writers.find (wId);
-				if (i == writers.end ()) return false; // Writer with the key wId not found
+				std::map<WId, LogAbstractReceiver *>::iterator i = receivers.find (wId);
+				if (i == receivers.end ()) return false; // Receiver with the key wId not found
 				format = i->second->logFormat ();
 				return true;
 			}
@@ -99,14 +99,14 @@ namespace LoggerSp {
 			//Запрещаем копирование модуля логов
 			Logger & operator= (const Logger &) {return *this;}
 
-			std::map<WId, LogAbstractWriter *> writers;
+			std::map<WId, LogAbstractReceiver *> receivers;
 
-			bool isFreezeWriteOperations;
+			bool isFreezeLogMessageBroadcast;
 
-			bool addWriter (const WId &wId, LogAbstractWriter *writer, const LogAbstractWriter::LogWriterState &state = LogAbstractWriter::Close) {
-				if (writers.find (wId) != writers.end ()) return false; // Already added Writer with key wId
-				writer->setState (state);
-				writers.insert (std::map<WId, LogAbstractWriter *>::value_type (wId, writer));
+			bool addReceiver (const WId &wId, LogAbstractReceiver *receiver, const LogAbstractReceiver::LogReceiverState &state = LogAbstractReceiver::Close) {
+				if (receivers.find (wId) != receivers.end ()) return false; // Already added Receiver with key wId
+				receiver->setState (state);
+				receivers.insert (std::map<WId, LogAbstractReceiver *>::value_type (wId, receiver));
 				return true;
 			}
 
