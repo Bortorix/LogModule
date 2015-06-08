@@ -124,7 +124,7 @@ DWORD __stdcall Logger::executeLoggerThread (LPVOID pParam) {
 			case 0: {
 				
 				try {
-					if (lgr->isFreezeWriteOperations) break;
+					if (lgr->isFreezeWriteOperations) {::Sleep (10); break;}
 					if (lgr->getMsg (msg) == false) break;
 					for (std::map<Logger::WId, LogAbstractWriter *>::const_iterator i = lgr->writers.begin () ; i != lgr->writers.end () ; ++i) {
 						LogAbstractWriter *writer = (*i).second;
