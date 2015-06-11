@@ -131,6 +131,7 @@ namespace LoggerSp {
 			MTSp::CriticalSection defQueueOfLogMsg_CS;
 
 			bool getMsg (LogMsg &msg);
+			void removeOldestMsg ();
 	};
 }
 

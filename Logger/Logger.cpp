@@ -90,18 +90,24 @@ bool Logger::getMsg (LogMsg &msg) {
 		lock.unlock ();
 		return false;
 	}
+	msg = queueOfLogMsg.front ();
 
-	msg.swap (queueOfLogMsg.front ());
-	queueOfLogMsg.pop ();
+	lock.unlock ();
+
+	return true;
+}
+
+void Logger::removeOldestMsg () {
+	MTSp::SingleLock lock (&defQueueOfLogMsg_CS, true);
+	if (!queueOfLogMsg.empty ()) queueOfLogMsg.pop ();
 
 	if (queueOfLogMsg.empty ()) {
 		isExistNewMsgEvent.resetEvent ();
 	} else {
 		isExistNewMsgEvent.setEvent ();
 	}
-	lock.unlock ();
 
-	return true;
+	lock.unlock ();
 }
 
 DWORD __stdcall Logger::executeLoggerThread (LPVOID pParam) {
@@ -126,10 +132,13 @@ DWORD __stdcall Logger::executeLoggerThread (LPVOID pParam) {
 				try {
 					if (lgr->isFreezeLogMessageBroadcast) {::Sleep (10); break;}
 					if (lgr->getMsg (msg) == false) break;
+					bool isTransmit= false;
+
 					for (std::map<Logger::WId, LogAbstractReceiver *>::const_iterator i = lgr->receivers.begin () ; i != lgr->receivers.end () ; ++i) {
 						LogAbstractReceiver *receiver = (*i).second;
 
 						if (receiver->state () == LogAbstractReceiver::Open) {
+							isTransmit = true;
 							if (receiver->isAcceptReceive (msg.logPriority)) {
 								try {
 									if (receiver->connect () == 0) { // Не самая эффективная реализация сохранения данных
@@ -142,6 +151,7 @@ DWORD __stdcall Logger::executeLoggerThread (LPVOID pParam) {
 							}
 						}
 					}
+					if (isTransmit) lgr->removeOldestMsg ();
 				} catch (...) {} 
 				break;	
 			}
