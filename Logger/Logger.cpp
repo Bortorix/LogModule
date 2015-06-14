@@ -120,6 +120,7 @@ DWORD __stdcall Logger::executeLoggerThread (LPVOID pParam) {
 	
 	LogMsg msg;
 	bool isContinue = true;
+	int sleeTimeInMSec = 10;
 
 	while (isContinue) {
 
@@ -130,7 +131,7 @@ DWORD __stdcall Logger::executeLoggerThread (LPVOID pParam) {
 			case 0: {
 				
 				try {
-					if (lgr->isFreezeLogMessageBroadcast) {::Sleep (10); break;}
+					if (lgr->isFreezeLogMessageBroadcast) {::Sleep (sleeTimeInMSec); break;}
 					if (lgr->getMsg (msg) == false) break;
 					bool isTransmit= false;
 
@@ -151,7 +152,12 @@ DWORD __stdcall Logger::executeLoggerThread (LPVOID pParam) {
 							}
 						}
 					}
-					if (isTransmit) lgr->removeOldestMsg ();
+
+					if (isTransmit) {
+						lgr->removeOldestMsg ();
+					} else {
+						::Sleep (sleeTimeInMSec);
+					}
 				} catch (...) {} 
 				break;	
 			}
